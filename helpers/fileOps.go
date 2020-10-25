@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/gen2brain/beeep"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
@@ -16,6 +17,11 @@ type Config struct {
 		ApiKeySec string `yaml:"api_secret_key"`
 		Username  string `yaml:"username"`
 	} `yaml:"lastfm"`
+	ServiceSettings struct {
+		DebugMode bool `yaml:"debug_mode"`
+		BlockNoti bool `yaml:"block_notifications"`
+		NoTime    bool `yaml:"no_time_display"`
+	} `yaml:"serviceSettings"`
 }
 
 func FileExists(filename string) bool {
@@ -43,7 +49,13 @@ func MakeEmptyFile() {
 			ApiKey    string `yaml:"api_key"`
 			ApiKeySec string `yaml:"api_secret_key"`
 			Username  string `yaml:"username"`
-		}{}}
+		}{},
+		ServiceSettings: struct {
+			DebugMode bool `yaml:"debug_mode"`
+			BlockNoti bool `yaml:"block_notifications"`
+			NoTime    bool `yaml:"no_time_display"`
+		}{},
+	}
 
 	d, err2 := yaml.Marshal(&emptyConf)
 
@@ -51,9 +63,10 @@ func MakeEmptyFile() {
 		panic(err2)
 	}
 
-	_ = ioutil.WriteFile("config.yaml", d, 0644)
+	_ = ioutil.WriteFile("config.yaml", d, 0600)
 
 	println("An Empty configuration file has been created - please insert your data in there and relaunch!")
+	_ = beeep.Alert("Edit config!", "An Empty configuration file has been created - please insert your data in there and relaunch!", "")
 	file.Close()
 	os.Exit(0)
 }

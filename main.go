@@ -75,35 +75,31 @@ func main() {
 					debugPrint(fmt.Sprintf("No time duration for %s", song.Tracks[0].Name), config)
 					finishTime = time.Unix(1, 1)
 				}
+
+				var timestamp = &client.Timestamps{
+					Start: nil,
+					End:   nil,
+				}
+
 				if config.ServiceSettings.NoTime {
-					_ = client.SetActivity(client.Activity{
-						Details:    song.Tracks[0].Name,
-						State:      fmt.Sprintf("Playing %s by %s", song.Tracks[0].Name, song.Tracks[0].Artist.Name),
-						LargeImage: config.Discord.ImageName,
-						LargeText:  "Scrobbling now on last.fm",
-					})
+					timestamp = nil
 				} else if finishTime == time.Unix(1, 1) {
 					debugPrint("Song didn't have duration in LastFM database, so I will only display elapsed time.", config)
-					_ = client.SetActivity(client.Activity{
-						Details:    song.Tracks[0].Name,
-						State:      fmt.Sprintf("Playing %s by %s", song.Tracks[0].Name, song.Tracks[0].Artist.Name),
-						LargeImage: config.Discord.ImageName,
-						LargeText:  "Scrobbling now on last.fm",
-						Timestamps: &client.Timestamps{Start: &currentTime},
-					})
+					timestamp = &client.Timestamps{Start: &currentTime}
 				} else {
 					debugPrint(fmt.Sprintf("Start time is %s and stop time is %s.", currentTime.String(), finishTime.String()), config)
-					_ = client.SetActivity(client.Activity{
-						Details:    song.Tracks[0].Name,
-						State:      fmt.Sprintf("Playing %s by %s", song.Tracks[0].Name, song.Tracks[0].Artist.Name),
-						LargeImage: config.Discord.ImageName,
-						LargeText:  "Scrobbling now on last.fm",
-						Timestamps: &client.Timestamps{
-							Start: &currentTime,
-							End:   &finishTime,
-						},
-					})
+					timestamp = &client.Timestamps{
+						Start: &currentTime,
+						End:   &finishTime,
+					}
 				}
+				_ = client.SetActivity(client.Activity{
+					Details:    song.Tracks[0].Name,
+					State:      fmt.Sprintf("Playing %s by %s", song.Tracks[0].Name, song.Tracks[0].Artist.Name),
+					LargeImage: config.Discord.ImageName,
+					LargeText:  "Scrobbling now on last.fm",
+					Timestamps: timestamp,
+				})
 				current = song.Tracks[0].Name
 			}
 			lastStatus = true

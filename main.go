@@ -29,11 +29,6 @@ func main() {
 		panic(err)
 	}
 
-	errD := client.Login(config.Discord.Client) // create the discord session
-	if errD != nil {
-		panic(err)
-	}
-
 	debugPrint(fmt.Sprintf("Service to sync discord to LastFM started successfully for user %s!", config.LastFM.Username), config)
 	if !config.ServiceSettings.BlockNoti {
 		errNotify := beeep.Notify(fmt.Sprintf("LastFM sync started for user %s!", config.LastFM.Username), "Service is running!", "")
@@ -46,8 +41,10 @@ func main() {
 	var currentTime = time.Now()
 	var finishTime = time.Now().Add(time.Duration(10000))
 
+	var lastStatus = false
 	for {
 		debugPrint("Starting loop", config)
+
 		song, err := api.User.GetRecentTracks(lastfm.P{ // refresh status
 			"user": config.LastFM.Username,
 		})
@@ -59,6 +56,12 @@ func main() {
 
 		if song.Tracks[0].NowPlaying == "true" { // if latest track reported as now playing
 			debugPrint("Latest track is now-playing!", config)
+			if !lastStatus {
+				errD := client.Login(config.Discord.Client) // create the discord session
+				if errD != nil {
+					panic(err)
+				}
+			}
 			duration, _ := api.Track.GetInfo(lastfm.P{
 				"artist": song.Tracks[0].Artist.Name, "track": song.Tracks[0].Name,
 			})
@@ -103,11 +106,11 @@ func main() {
 				}
 				current = song.Tracks[0].Name
 			}
+			lastStatus = true
 		} else {
 			debugPrint("None playing on lastfm right now, displaying none.", config)
-			_ = client.SetActivity(client.Activity{
-				Details: "None",
-			})
+			client.Logout()
+			lastStatus = false
 		}
 		time.Sleep(time.Second * 1)
 	}

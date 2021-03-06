@@ -1,10 +1,10 @@
 package main
 
 import (
-	"discordlistening/helpers"
 	"fmt"
 	"github.com/gen2brain/beeep"
 	"github.com/hugolgst/rich-go/client"
+	"github.com/ptgms/discord-listening/helpers"
 	"github.com/shkh/lastfm-go/lastfm"
 	"strconv"
 	"time"
